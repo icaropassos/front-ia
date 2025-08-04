@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Home, FileText, Search, Settings, ChevronRight } from 'lucide-react';
+import logo from '../img/Logo SysMap 25 Anos.png';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -33,7 +34,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       {/* Sidebar */}
       <div className="w-64 bg-white shadow-sm border-r border-gray-200">
         <div className="p-6 flex justify-center">
-          <img src='src\img\Logo SysMap 25 Anos.png' alt='Logo SysMap' className='h-12'/>
+          <img src={logo} alt='Logo SysMap' className='h-12'/>
         </div>
         <nav className="mt-6">
           <div className="px-3">
