@@ -32,8 +32,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     <div className="min-h-screen bg-gray-50 flex">
       {/* Sidebar */}
       <div className="w-64 bg-white shadow-sm border-r border-gray-200">
-        <div className="p-6">
-          <h1 className="text-xl font-bold text-gray-900">QA Journey</h1>
+        <div className="p-6 flex justify-center">
+          <img src='src\img\Logo SysMap 25 Anos.png' alt='Logo SysMap' className='h-12'/>
         </div>
         <nav className="mt-6">
           <div className="px-3">
