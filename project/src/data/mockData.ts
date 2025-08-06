@@ -13,7 +13,7 @@ export const mockHistorias: Historia[] = [
     cenarios: [
       {
         nome: "Adicionar produto com corte total no CD primário e captação em trânsito disponível",
-        resultadoEsperado: "Produto inserido no carrinho e entrega adiada recalculada",
+        resultadoEsperado: "Produto em trânsito com impacto no prazo exibe aviso, opção de adiar entrega e botão 'Ver opções'.",
         massaDados: {
           produto: "812394 - Shampoo Karité 250ml",
           cdPrimario: "11 (sem estoque)",
@@ -21,12 +21,350 @@ export const mockHistorias: Historia[] = [
           transito: "20 unidades em CD 11",
           impactoPrazo: "Sim"
         },
+        gherkin: `Funcionalidade: Captação de produtos com estoque em trânsito\n  Cenário: Realizar pedido com captação em trânsito que tenha impacto no prazo de entrega\n    Dado que esteja sendo realizado um pedido que tenha um produto sem estoque nos CDs primário e secundário da consultora\n    E que o produto tenha estoque em trânsito apenas no CD que tenha impacto no prazo de entrega\n    Quando o produto for inserido no carrinho\n    Então deverá ser exibida a mensagem de produto indisponível com a opção de incluir o produto adiando a entrega do pedido\n    E um botão 'Ver opções' deverá ser exibido para a consultora escolher como proceder`,
         automacao: `@Automated
-Cenário: Adicionar produto com corte total no CD primário e captação em trânsito disponível
-Dado que o produto está indisponível no CD primário
-E existe captação em trânsito com quantidade suficiente
-Quando o cliente adiciona o produto ao carrinho
-Então o sistema deve inserir a quantidade total via captação em trânsito`,
+public class TestCaptacaoDeProdutosComEstoqueEmTransito {
+
+    private WebDriver driver;
+    private WebDriverWait wait;
+    private String baseUrl;
+
+    @Before
+    public void setUp() {
+
+        System.setProperty("webdriver.chrome.driver", "caminho/para/seu/chromedriver.exe");
+        driver = new ChromeDriver();
+        wait = new WebDriverWait(driver, 10);
+        baseUrl = "URL_DA_APLICACAO";
+
+    }
+
+    @Test
+    public void testRealizarPedidoComCaptacaoEmTransitoQueTenhaImpactoNoPrazoDeEntrega() {
+
+        driver.get(baseUrl);
+
+
+        // Passo 1: Realizar o pedido com produto sem estoque
+
+        WebElement pedidoButton = wait.until(ExpectedConditions.presenceOfElementLocated(By.id("pedidoButton")));
+
+        pedidoButton.click();
+
+
+        // Passo 2: Verificar estoque em trânsito com impacto no prazo de entrega
+
+        WebElement produtoStatus = wait.until(ExpectedConditions.presenceOfElementLocated(By.id("produtoStatus")));
+
+        assertTrue(produtoStatus.getText().contains("Estoque em trânsito"));
+
+ 
+        // Passo 3: Inserir produto no carrinho
+
+        WebElement addCarrinhoButton = wait.until(ExpectedConditions.elementToBeClickable(By.id("addCarrinhoButton")));
+
+        addCarrinhoButton.click();
+
+
+        // Passo 4: Exibir mensagem e botão para opções
+
+        WebElement mensagemProduto = wait.until(ExpectedConditions.presenceOfElementLocated(By.id("mensagemProduto")));
+
+        assertTrue(mensagemProduto.getText().contains("Produto indisponível"));
+
+        WebElement verOpcoesButton = wait.until(ExpectedConditions.presenceOfElementLocated(By.id("verOpcoesButton")));
+
+        assertTrue(verOpcoesButton.isDisplayed());
+
+    }`,
+        status: {
+          resultadoEsperado: "gerado",
+          massaDados: "gerado",
+          automacao: "gerado"
+        }
+      },
+      {
+        nome: "Adicionar produto com corte total no CD primário e captação em trânsito disponível",
+        resultadoEsperado: "Produto em trânsito com impacto no prazo exibe aviso, opção de adiar entrega e botão 'Ver opções'.",
+        massaDados: {
+          produto: "812394 - Shampoo Karité 250ml",
+          cdPrimario: "11 (sem estoque)",
+          cdSecundario: "12 (sem estoque)",
+          transito: "20 unidades em CD 11",
+          impactoPrazo: "Sim"
+        },
+        gherkin: `Funcionalidade: Captação de produtos com estoque em trânsito\n  Cenário: Realizar pedido com captação em trânsito que tenha impacto no prazo de entrega\n    Dado que esteja sendo realizado um pedido que tenha um produto sem estoque nos CDs primário e secundário da consultora\n    E que o produto tenha estoque em trânsito apenas no CD que tenha impacto no prazo de entrega\n    Quando o produto for inserido no carrinho\n    Então deverá ser exibida a mensagem de produto indisponível com a opção de incluir o produto adiando a entrega do pedido\n    E um botão 'Ver opções' deverá ser exibido para a consultora escolher como proceder`,
+        automacao: `@Automated
+public class TestCaptacaoDeProdutosComEstoqueEmTransito {
+
+    private WebDriver driver;
+    private WebDriverWait wait;
+    private String baseUrl;
+
+    @Before
+    public void setUp() {
+
+        System.setProperty("webdriver.chrome.driver", "caminho/para/seu/chromedriver.exe");
+        driver = new ChromeDriver();
+        wait = new WebDriverWait(driver, 10);
+        baseUrl = "URL_DA_APLICACAO";
+
+    }
+
+    @Test
+    public void testRealizarPedidoComCaptacaoEmTransitoQueTenhaImpactoNoPrazoDeEntrega() {
+
+        driver.get(baseUrl);
+
+
+        // Passo 1: Realizar o pedido com produto sem estoque
+
+        WebElement pedidoButton = wait.until(ExpectedConditions.presenceOfElementLocated(By.id("pedidoButton")));
+
+        pedidoButton.click();
+
+
+        // Passo 2: Verificar estoque em trânsito com impacto no prazo de entrega
+
+        WebElement produtoStatus = wait.until(ExpectedConditions.presenceOfElementLocated(By.id("produtoStatus")));
+
+        assertTrue(produtoStatus.getText().contains("Estoque em trânsito"));
+
+ 
+        // Passo 3: Inserir produto no carrinho
+
+        WebElement addCarrinhoButton = wait.until(ExpectedConditions.elementToBeClickable(By.id("addCarrinhoButton")));
+
+        addCarrinhoButton.click();
+
+
+        // Passo 4: Exibir mensagem e botão para opções
+
+        WebElement mensagemProduto = wait.until(ExpectedConditions.presenceOfElementLocated(By.id("mensagemProduto")));
+
+        assertTrue(mensagemProduto.getText().contains("Produto indisponível"));
+
+        WebElement verOpcoesButton = wait.until(ExpectedConditions.presenceOfElementLocated(By.id("verOpcoesButton")));
+
+        assertTrue(verOpcoesButton.isDisplayed());
+
+    }`,
+        status: {
+          resultadoEsperado: "gerado",
+          massaDados: "gerado",
+          automacao: "gerado"
+        }
+      },
+      {
+        nome: "Adicionar produto com corte total no CD primário e captação em trânsito disponível",
+        resultadoEsperado: "Produto em trânsito com impacto no prazo exibe aviso, opção de adiar entrega e botão 'Ver opções'.",
+        massaDados: {
+          produto: "812394 - Shampoo Karité 250ml",
+          cdPrimario: "11 (sem estoque)",
+          cdSecundario: "12 (sem estoque)",
+          transito: "20 unidades em CD 11",
+          impactoPrazo: "Sim"
+        },
+        gherkin: `Funcionalidade: Captação de produtos com estoque em trânsito\n  Cenário: Realizar pedido com captação em trânsito que tenha impacto no prazo de entrega\n    Dado que esteja sendo realizado um pedido que tenha um produto sem estoque nos CDs primário e secundário da consultora\n    E que o produto tenha estoque em trânsito apenas no CD que tenha impacto no prazo de entrega\n    Quando o produto for inserido no carrinho\n    Então deverá ser exibida a mensagem de produto indisponível com a opção de incluir o produto adiando a entrega do pedido\n    E um botão 'Ver opções' deverá ser exibido para a consultora escolher como proceder`,
+        automacao: `@Automated
+public class TestCaptacaoDeProdutosComEstoqueEmTransito {
+
+    private WebDriver driver;
+    private WebDriverWait wait;
+    private String baseUrl;
+
+    @Before
+    public void setUp() {
+
+        System.setProperty("webdriver.chrome.driver", "caminho/para/seu/chromedriver.exe");
+        driver = new ChromeDriver();
+        wait = new WebDriverWait(driver, 10);
+        baseUrl = "URL_DA_APLICACAO";
+
+    }
+
+    @Test
+    public void testRealizarPedidoComCaptacaoEmTransitoQueTenhaImpactoNoPrazoDeEntrega() {
+
+        driver.get(baseUrl);
+
+
+        // Passo 1: Realizar o pedido com produto sem estoque
+
+        WebElement pedidoButton = wait.until(ExpectedConditions.presenceOfElementLocated(By.id("pedidoButton")));
+
+        pedidoButton.click();
+
+
+        // Passo 2: Verificar estoque em trânsito com impacto no prazo de entrega
+
+        WebElement produtoStatus = wait.until(ExpectedConditions.presenceOfElementLocated(By.id("produtoStatus")));
+
+        assertTrue(produtoStatus.getText().contains("Estoque em trânsito"));
+
+ 
+        // Passo 3: Inserir produto no carrinho
+
+        WebElement addCarrinhoButton = wait.until(ExpectedConditions.elementToBeClickable(By.id("addCarrinhoButton")));
+
+        addCarrinhoButton.click();
+
+
+        // Passo 4: Exibir mensagem e botão para opções
+
+        WebElement mensagemProduto = wait.until(ExpectedConditions.presenceOfElementLocated(By.id("mensagemProduto")));
+
+        assertTrue(mensagemProduto.getText().contains("Produto indisponível"));
+
+        WebElement verOpcoesButton = wait.until(ExpectedConditions.presenceOfElementLocated(By.id("verOpcoesButton")));
+
+        assertTrue(verOpcoesButton.isDisplayed());
+
+    }`,
+        status: {
+          resultadoEsperado: "gerado",
+          massaDados: "gerado",
+          automacao: "gerado"
+        }
+      },
+      {
+        nome: "Adicionar produto com corte total no CD primário e captação em trânsito disponível",
+        resultadoEsperado: "Produto em trânsito com impacto no prazo exibe aviso, opção de adiar entrega e botão 'Ver opções'.",
+        massaDados: {
+          produto: "812394 - Shampoo Karité 250ml",
+          cdPrimario: "11 (sem estoque)",
+          cdSecundario: "12 (sem estoque)",
+          transito: "20 unidades em CD 11",
+          impactoPrazo: "Sim"
+        },
+        gherkin: `Funcionalidade: Captação de produtos com estoque em trânsito\n  Cenário: Realizar pedido com captação em trânsito que tenha impacto no prazo de entrega\n    Dado que esteja sendo realizado um pedido que tenha um produto sem estoque nos CDs primário e secundário da consultora\n    E que o produto tenha estoque em trânsito apenas no CD que tenha impacto no prazo de entrega\n    Quando o produto for inserido no carrinho\n    Então deverá ser exibida a mensagem de produto indisponível com a opção de incluir o produto adiando a entrega do pedido\n    E um botão 'Ver opções' deverá ser exibido para a consultora escolher como proceder`,
+        automacao: `@Automated
+public class TestCaptacaoDeProdutosComEstoqueEmTransito {
+
+    private WebDriver driver;
+    private WebDriverWait wait;
+    private String baseUrl;
+
+    @Before
+    public void setUp() {
+
+        System.setProperty("webdriver.chrome.driver", "caminho/para/seu/chromedriver.exe");
+        driver = new ChromeDriver();
+        wait = new WebDriverWait(driver, 10);
+        baseUrl = "URL_DA_APLICACAO";
+
+    }
+
+    @Test
+    public void testRealizarPedidoComCaptacaoEmTransitoQueTenhaImpactoNoPrazoDeEntrega() {
+
+        driver.get(baseUrl);
+
+
+        // Passo 1: Realizar o pedido com produto sem estoque
+
+        WebElement pedidoButton = wait.until(ExpectedConditions.presenceOfElementLocated(By.id("pedidoButton")));
+
+        pedidoButton.click();
+
+
+        // Passo 2: Verificar estoque em trânsito com impacto no prazo de entrega
+
+        WebElement produtoStatus = wait.until(ExpectedConditions.presenceOfElementLocated(By.id("produtoStatus")));
+
+        assertTrue(produtoStatus.getText().contains("Estoque em trânsito"));
+
+ 
+        // Passo 3: Inserir produto no carrinho
+
+        WebElement addCarrinhoButton = wait.until(ExpectedConditions.elementToBeClickable(By.id("addCarrinhoButton")));
+
+        addCarrinhoButton.click();
+
+
+        // Passo 4: Exibir mensagem e botão para opções
+
+        WebElement mensagemProduto = wait.until(ExpectedConditions.presenceOfElementLocated(By.id("mensagemProduto")));
+
+        assertTrue(mensagemProduto.getText().contains("Produto indisponível"));
+
+        WebElement verOpcoesButton = wait.until(ExpectedConditions.presenceOfElementLocated(By.id("verOpcoesButton")));
+
+        assertTrue(verOpcoesButton.isDisplayed());
+
+    }`,
+        status: {
+          resultadoEsperado: "gerado",
+          massaDados: "gerado",
+          automacao: "gerado"
+        }
+      },
+      {
+        nome: "Adicionar produto com corte total no CD primário e captação em trânsito disponível",
+        resultadoEsperado: "Produto em trânsito com impacto no prazo exibe aviso, opção de adiar entrega e botão 'Ver opções'.",
+        massaDados: {
+          produto: "812394 - Shampoo Karité 250ml",
+          cdPrimario: "11 (sem estoque)",
+          cdSecundario: "12 (sem estoque)",
+          transito: "20 unidades em CD 11",
+          impactoPrazo: "Sim"
+        },
+        gherkin: `Funcionalidade: Captação de produtos com estoque em trânsito\n  Cenário: Realizar pedido com captação em trânsito que tenha impacto no prazo de entrega\n    Dado que esteja sendo realizado um pedido que tenha um produto sem estoque nos CDs primário e secundário da consultora\n    E que o produto tenha estoque em trânsito apenas no CD que tenha impacto no prazo de entrega\n    Quando o produto for inserido no carrinho\n    Então deverá ser exibida a mensagem de produto indisponível com a opção de incluir o produto adiando a entrega do pedido\n    E um botão 'Ver opções' deverá ser exibido para a consultora escolher como proceder`,
+        automacao: `@Automated
+public class TestCaptacaoDeProdutosComEstoqueEmTransito {
+
+    private WebDriver driver;
+    private WebDriverWait wait;
+    private String baseUrl;
+
+    @Before
+    public void setUp() {
+
+        System.setProperty("webdriver.chrome.driver", "caminho/para/seu/chromedriver.exe");
+        driver = new ChromeDriver();
+        wait = new WebDriverWait(driver, 10);
+        baseUrl = "URL_DA_APLICACAO";
+
+    }
+
+    @Test
+    public void testRealizarPedidoComCaptacaoEmTransitoQueTenhaImpactoNoPrazoDeEntrega() {
+
+        driver.get(baseUrl);
+
+
+        // Passo 1: Realizar o pedido com produto sem estoque
+
+        WebElement pedidoButton = wait.until(ExpectedConditions.presenceOfElementLocated(By.id("pedidoButton")));
+
+        pedidoButton.click();
+
+
+        // Passo 2: Verificar estoque em trânsito com impacto no prazo de entrega
+
+        WebElement produtoStatus = wait.until(ExpectedConditions.presenceOfElementLocated(By.id("produtoStatus")));
+
+        assertTrue(produtoStatus.getText().contains("Estoque em trânsito"));
+
+ 
+        // Passo 3: Inserir produto no carrinho
+
+        WebElement addCarrinhoButton = wait.until(ExpectedConditions.elementToBeClickable(By.id("addCarrinhoButton")));
+
+        addCarrinhoButton.click();
+
+
+        // Passo 4: Exibir mensagem e botão para opções
+
+        WebElement mensagemProduto = wait.until(ExpectedConditions.presenceOfElementLocated(By.id("mensagemProduto")));
+
+        assertTrue(mensagemProduto.getText().contains("Produto indisponível"));
+
+        WebElement verOpcoesButton = wait.until(ExpectedConditions.presenceOfElementLocated(By.id("verOpcoesButton")));
+
+        assertTrue(verOpcoesButton.isDisplayed());
+
+    }`,
         status: {
           resultadoEsperado: "gerado",
           massaDados: "gerado",
@@ -60,6 +398,7 @@ Então o sistema deve inserir a quantidade total via captação em trânsito`,
           transito: "0 unidades",
           impactoPrazo: "Não"
         },
+        gherkin: ``,
         automacao: `@Automated
 Cenário: Aplicar desconto progressivo
 Dado que tenho produtos no carrinho
@@ -98,6 +437,7 @@ Então deve aplicar desconto de 5%`,
           transito: "0 unidades",
           impactoPrazo: "Não"
         },
+        gherkin: ``,
         automacao: `Cenário: Pagamento múltiplo
 Dado que tenho um pedido de R$ 200,00
 Quando pago R$ 100,00 no cartão

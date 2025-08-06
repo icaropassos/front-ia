@@ -14,6 +14,7 @@ export interface Cenario {
     transito: string;
     impactoPrazo: string;
   };
+  gherkin: string;
   automacao: string;
   status: Status;
 }

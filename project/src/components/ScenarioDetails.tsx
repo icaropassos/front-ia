@@ -45,7 +45,7 @@ const ScenarioDetails: React.FC = () => {
           </div>
           <div className="bg-gray-50 rounded-md p-4">
             <pre className="text-sm text-gray-800 whitespace-pre-wrap font-mono leading-relaxed">
-              {cenario.automacao}
+              {cenario.gherkin}
             </pre>
           </div>
         </div>
