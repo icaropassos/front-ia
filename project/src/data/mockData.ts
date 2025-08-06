@@ -12,7 +12,7 @@ export const mockHistorias: Historia[] = [
     ],
     cenarios: [
       {
-        nome: "Adicionar produto com corte total no CD primário e captação em trânsito disponível",
+        nome: "Realizar pedido com captação em trânsito que tenha impacto no prazo de entrega",
         resultadoEsperado: "Produto em trânsito com impacto no prazo exibe aviso, opção de adiar entrega e botão 'Ver opções'.",
         massaDados: {
           produto: "812394 - Shampoo Karité 250ml",
@@ -84,7 +84,7 @@ public class TestCaptacaoDeProdutosComEstoqueEmTransito {
         }
       },
       {
-        nome: "Adicionar produto com corte total no CD primário e captação em trânsito disponível",
+        nome: "Realizar pedido com captação em trânsito onde um dos CDs tenha impacto no prazo e o outro não",
         resultadoEsperado: "Produto em trânsito com impacto no prazo exibe aviso, opção de adiar entrega e botão 'Ver opções'.",
         massaDados: {
           produto: "812394 - Shampoo Karité 250ml",
@@ -156,7 +156,7 @@ public class TestCaptacaoDeProdutosComEstoqueEmTransito {
         }
       },
       {
-        nome: "Adicionar produto com corte total no CD primário e captação em trânsito disponível",
+        nome: "Escolher entre adiamento da entrega ou descarte do item no carrinho",
         resultadoEsperado: "Produto em trânsito com impacto no prazo exibe aviso, opção de adiar entrega e botão 'Ver opções'.",
         massaDados: {
           produto: "812394 - Shampoo Karité 250ml",
@@ -228,7 +228,7 @@ public class TestCaptacaoDeProdutosComEstoqueEmTransito {
         }
       },
       {
-        nome: "Adicionar produto com corte total no CD primário e captação em trânsito disponível",
+        nome: "Adicionar produto com entrega adiada ao carrinho",
         resultadoEsperado: "Produto em trânsito com impacto no prazo exibe aviso, opção de adiar entrega e botão 'Ver opções'.",
         massaDados: {
           produto: "812394 - Shampoo Karité 250ml",
@@ -300,7 +300,7 @@ public class TestCaptacaoDeProdutosComEstoqueEmTransito {
         }
       },
       {
-        nome: "Adicionar produto com corte total no CD primário e captação em trânsito disponível",
+        nome: "Descartar item com impacto no prazo de entrega",
         resultadoEsperado: "Produto em trânsito com impacto no prazo exibe aviso, opção de adiar entrega e botão 'Ver opções'.",
         massaDados: {
           produto: "812394 - Shampoo Karité 250ml",

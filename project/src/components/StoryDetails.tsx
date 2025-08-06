@@ -3,10 +3,18 @@ import { useParams, Link } from 'react-router-dom';
 import { Eye, CheckCircle, Clock, XCircle } from 'lucide-react';
 import { mockHistorias } from '../data/mockData';
 import StatusIndicator from './StatusIndicator';
+import Modal from './Modal';
+import { useState } from 'react';
+import img1 from '../img/anexada1.png';
+import img2 from '../img/anexada2.png';
+import img3 from '../img/anexada3.png';
 
 const StoryDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const historia = mockHistorias.find(h => h.id === id);
+  const [isModalOpen, setModalOpen] = useState(false);
+  const openModal = () => setModalOpen(true);
+  const closeModal = () => setModalOpen(false);
 
   if (!historia) {
     return (
@@ -22,14 +30,14 @@ const StoryDetails: React.FC = () => {
   return (
     <div>
       {/* Story Header */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+      <div className="relative bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
         <div className="flex items-center gap-3 mb-4">
           <h1 className="text-2xl font-bold text-gray-900">{historia.titulo}</h1>
           <span className="text-sm font-medium text-gray-500 bg-gray-100 px-3 py-1 rounded">
             {historia.id}
           </span>
         </div>
-        
+
         <div className="mb-6">
           <h2 className="text-sm font-semibold text-gray-700 mb-2">Descrição</h2>
           <p className="text-gray-600">{historia.descricao}</p>
@@ -46,6 +54,16 @@ const StoryDetails: React.FC = () => {
             ))}
           </ul>
         </div>
+        <div className="flex justify-between items-end mt-8">
+          <button
+            onClick={openModal}
+            className="absolute bottom-6 right-6 inline-flex items-center px-3 py-2 text-sm font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 transition-colors"
+          >
+            <Eye className="h-4 w-4 mr-1" />
+            Ver Detalhes
+          </button>
+        </div>
+
       </div>
 
       {/* Test Scenarios */}
@@ -63,23 +81,23 @@ const StoryDetails: React.FC = () => {
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <h3 className="font-medium text-gray-900 mb-3">{cenario.nome}</h3>
-                  
+
                   <div className="flex gap-3 mb-4">
-                    <StatusIndicator 
-                      status={cenario.status.resultadoEsperado} 
-                      label="Resultado Esperado" 
+                    <StatusIndicator
+                      status={cenario.status.resultadoEsperado}
+                      label="Resultado Esperado"
                     />
-                    <StatusIndicator 
-                      status={cenario.status.massaDados} 
-                      label="Massa de Dados" 
+                    <StatusIndicator
+                      status={cenario.status.massaDados}
+                      label="Massa de Dados"
                     />
-                    <StatusIndicator 
-                      status={cenario.status.automacao} 
-                      label="Esqueleto da Automação" 
+                    <StatusIndicator
+                      status={cenario.status.automacao}
+                      label="Esqueleto da Automação"
                     />
                   </div>
                 </div>
-                
+
                 <Link
                   to={`/historia/${historia.id}/cenario/${index}`}
                   className="inline-flex items-center px-3 py-2 text-sm font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 transition-colors ml-4"
@@ -99,8 +117,38 @@ const StoryDetails: React.FC = () => {
           </div>
         )}
       </div>
+      <Modal isOpen={isModalOpen} onClose={closeModal} title="Detalhes da Captação com Impacto">
+        <p className="mb-3 text-gray-700">
+          Ao inserir um item no carrinho, o sistema verifica os CDs da consultora. Caso o produto esteja apenas em trânsito com impacto no prazo de entrega, um modal deve ser exibido oferecendo a opção de:
+        </p>
+        <ul className="list-disc list-inside text-gray-700 mb-4">
+          <li>Incluir o produto com entrega adiada</li>
+          <li>Descartar o produto e manter o prazo original</li>
+        </ul>
+        <p className="text-gray-700 mb-4">
+          Caso o produto seja incluído com entrega adiada, uma nova mensagem aparece e o produto aparece no carrinho com ícone de calendário e descrição: <strong>“Este produto adiou a entrega”</strong>.
+        </p>
+        <div className="bg-gray-100 p-3 rounded text-sm text-gray-600 mb-4">
+          <strong>Cenário 1:</strong> Produto apenas em trânsito com impacto → exibir opção ao usuário<br />
+          <strong>Cenário 2:</strong> Produto em trânsito em dois CDs, mas um sem impacto → incluir automaticamente
+        </div>
+        <div className="mt-4">
+          <p className="font-semibold mb-2">Imagens Representativas:</p>
+          <div className="w-full h-100 bg-gray-200 mb-2 flex items-center justify-center text-gray-500 rounded">
+            <img src={img1} alt='Primeira imagem' className='h-full w-full p-2' />
+          </div>
+          <div className="w-full h-100 bg-gray-200 mb-2 flex items-center justify-center text-gray-500 rounded">
+            <img src={img2} alt='Segunda imagem' className='h-full w-full p-2' />
+          </div>
+          <div className="w-full h-100 bg-gray-200 mb-2 flex items-center justify-center text-gray-500 rounded">
+            <img src={img3} alt='Terceira imagem' className='h-full w-full p-2' />
+          </div>
+        </div>
+      </Modal>
     </div>
+
   );
+
 };
 
 export default StoryDetails;
