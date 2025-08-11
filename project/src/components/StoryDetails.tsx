@@ -1,21 +1,75 @@
 import React from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Eye, CheckCircle, Clock, XCircle } from 'lucide-react';
-import { mockHistorias } from '../data/mockData';
+import { supabase } from '../supabaseClient';
 import StatusIndicator from './StatusIndicator';
 import Modal from './Modal';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import img1 from '../img/anexada1.png';
 import img2 from '../img/anexada2.png';
 import img3 from '../img/anexada3.png';
 
+// Função para mapear status do banco para o StatusIndicator
+const mapStatus = (status: string): 'gerado' | 'em-geracao' | 'nao-gerado' => {
+  switch (status) {
+    case 'Concluído':
+      return 'gerado';
+    case 'Em Geração':
+      return 'em-geracao';
+    case 'Não Gerado':
+    default:
+      return 'nao-gerado';
+  }
+};
+
 const StoryDetails: React.FC = () => {
-  const { id } = useParams<{ id: string }>();
-  const historia = mockHistorias.find(h => h.id === id);
+  const { historia_id } = useParams<{ historia_id: string }>();
+  const [historia, setHistoria] = useState<any>(null);
+  const [criterios, setCriterios] = useState<string[]>([]);
+  const [cenarios, setCenarios] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const [isModalOpen, setModalOpen] = useState(false);
   const openModal = () => setModalOpen(true);
   const closeModal = () => setModalOpen(false);
 
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      // Buscar detalhes da história pelo historia_id
+      const { data: historiaData } = await supabase
+        .from('historias')
+        .select('*')
+        .eq('historia_id', historia_id)
+        .single();
+      setHistoria(historiaData);
+      // Buscar critérios e cenários pelo historia_id
+      if (historiaData?.historia_id) {
+        const { data: criteriosData } = await supabase
+          .from('criterios')
+          .select('criterio')
+          .eq('historia_id', historiaData.historia_id);
+        setCriterios(criteriosData ? criteriosData.map(c => c.criterio) : []);
+        const { data: cenariosData } = await supabase
+          .from('cenarios')
+          .select('*')
+          .eq('historia_id', historiaData.historia_id);
+        setCenarios(cenariosData || []);
+      } else {
+        setCriterios([]);
+        setCenarios([]);
+      }
+      setLoading(false);
+    };
+    if (historia_id) fetchData();
+  }, [historia_id]);
+
+  if (loading) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-gray-500">Carregando detalhes da história...</p>
+      </div>
+    );
+  }
   if (!historia) {
     return (
       <div className="text-center py-12">
@@ -34,19 +88,23 @@ const StoryDetails: React.FC = () => {
         <div className="flex items-center gap-3 mb-4">
           <h1 className="text-2xl font-bold text-gray-900">{historia.titulo}</h1>
           <span className="text-sm font-medium text-gray-500 bg-gray-100 px-3 py-1 rounded">
-            {historia.id}
+            {historia.historia_id}
           </span>
         </div>
 
         <div className="mb-6">
           <h2 className="text-sm font-semibold text-gray-700 mb-2">Descrição</h2>
-          <p className="text-gray-600">{historia.descricao}</p>
+          <p className="text-gray-600">
+            {historia.descricao && historia.descricao.length > 250
+              ? historia.descricao.slice(0, 250) + '...'
+              : historia.descricao}
+          </p>
         </div>
 
         <div>
           <h2 className="text-sm font-semibold text-gray-700 mb-3">Critérios de Aceite</h2>
           <ul className="space-y-2">
-            {historia.criterios.map((criterio, index) => (
+            {criterios.map((criterio, index) => (
               <li key={index} className="flex items-start gap-2">
                 <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
                 <span className="text-gray-600">{criterio}</span>
@@ -71,35 +129,33 @@ const StoryDetails: React.FC = () => {
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-semibold text-gray-900">Cenários de Teste Gerados pela IA</h2>
           <span className="text-sm text-gray-500">
-            {historia.cenarios.length} cenário{historia.cenarios.length !== 1 ? 's' : ''} encontrado{historia.cenarios.length !== 1 ? 's' : ''}
+            {cenarios.length} cenário{cenarios.length !== 1 ? 's' : ''} encontrado{cenarios.length !== 1 ? 's' : ''}
           </span>
         </div>
 
         <div className="space-y-4">
-          {historia.cenarios.map((cenario, index) => (
+          {cenarios.map((cenario, index) => (
             <div key={index} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <h3 className="font-medium text-gray-900 mb-3">{cenario.nome}</h3>
-
                   <div className="flex gap-3 mb-4">
                     <StatusIndicator
-                      status={cenario.status.resultadoEsperado}
+                      status={mapStatus(cenario.status_resultado_esperado)}
                       label="Resultado Esperado"
                     />
                     <StatusIndicator
-                      status={cenario.status.massaDados}
+                      status={mapStatus(cenario.status_massa_dados)}
                       label="Massa de Dados"
                     />
                     <StatusIndicator
-                      status={cenario.status.automacao}
+                      status={mapStatus(cenario.status_automacao)}
                       label="Esqueleto da Automação"
                     />
                   </div>
                 </div>
-
                 <Link
-                  to={`/historia/${historia.id}/cenario/${index}`}
+                  to={`/historia/${historia.historia_id}/cenario/${index}`}
                   className="inline-flex items-center px-3 py-2 text-sm font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 transition-colors ml-4"
                 >
                   <Eye className="h-4 w-4 mr-1" />
@@ -110,40 +166,18 @@ const StoryDetails: React.FC = () => {
           ))}
         </div>
 
-        {historia.cenarios.length === 0 && (
+        {cenarios.length === 0 && (
           <div className="text-center py-8">
             <XCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
             <p className="text-gray-500">Nenhum cenário de teste foi gerado ainda.</p>
           </div>
         )}
       </div>
-      <Modal isOpen={isModalOpen} onClose={closeModal} title="Detalhes da Captação com Impacto">
-        <p className="mb-3 text-gray-700">
-          Ao inserir um item no carrinho, o sistema verifica os CDs da consultora. Caso o produto esteja apenas em trânsito com impacto no prazo de entrega, um modal deve ser exibido oferecendo a opção de:
-        </p>
-        <ul className="list-disc list-inside text-gray-700 mb-4">
-          <li>Incluir o produto com entrega adiada</li>
-          <li>Descartar o produto e manter o prazo original</li>
-        </ul>
-        <p className="text-gray-700 mb-4">
-          Caso o produto seja incluído com entrega adiada, uma nova mensagem aparece e o produto aparece no carrinho com ícone de calendário e descrição: <strong>“Este produto adiou a entrega”</strong>.
-        </p>
-        <div className="bg-gray-100 p-3 rounded text-sm text-gray-600 mb-4">
-          <strong>Cenário 1:</strong> Produto apenas em trânsito com impacto → exibir opção ao usuário<br />
-          <strong>Cenário 2:</strong> Produto em trânsito em dois CDs, mas um sem impacto → incluir automaticamente
-        </div>
-        <div className="mt-4">
-          <p className="font-semibold mb-2">Imagens Representativas:</p>
-          <div className="w-full h-100 bg-gray-200 mb-2 flex items-center justify-center text-gray-500 rounded">
-            <img src={img1} alt='Primeira imagem' className='h-full w-full p-2' />
-          </div>
-          <div className="w-full h-100 bg-gray-200 mb-2 flex items-center justify-center text-gray-500 rounded">
-            <img src={img2} alt='Segunda imagem' className='h-full w-full p-2' />
-          </div>
-          <div className="w-full h-100 bg-gray-200 mb-2 flex items-center justify-center text-gray-500 rounded">
-            <img src={img3} alt='Terceira imagem' className='h-full w-full p-2' />
-          </div>
-        </div>
+      <Modal isOpen={isModalOpen} onClose={closeModal} title="Detalhes da História">
+        <h2 className="text-lg font-bold mb-2 text-gray-900">Descrição Completa</h2>
+        <pre className="whitespace-pre-wrap text-gray-800 text-sm mb-4">
+          {historia?.descricao || "Nenhum conteúdo encontrado."}
+        </pre>
       </Modal>
     </div>
 

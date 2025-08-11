@@ -11,8 +11,8 @@ function App() {
       <Layout>
         <Routes>
           <Route path="/" element={<StoryListing />} />
-          <Route path="/historia/:id" element={<StoryDetails />} />
-          <Route path="/historia/:id/cenario/:cenarioIndex" element={<ScenarioDetails />} />
+          <Route path="/historia/:historia_id" element={<StoryDetails />} />
+          <Route path="/historia/:historia_id/cenario/:cenarioIndex" element={<ScenarioDetails />} />
         </Routes>
       </Layout>
     </Router>

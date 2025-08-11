@@ -21,12 +21,13 @@ export interface Cenario {
 
 export interface Historia {
   id: string;
+  historia_id: string;
   titulo: string;
   descricao: string;
-  criterios: string[];
-  cenarios: Cenario[];
-  projeto: string;
-  status: Status;
+  projeto_id: string;
+  status_resultado_esperado: string;
+  status_massa_dados: string;
+  status_automacao: string;
 }
 
 export type StatusType = 'nao-gerado' | 'em-geracao' | 'gerado';
