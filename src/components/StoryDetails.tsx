@@ -6,6 +6,7 @@ import StatusIndicator from './StatusIndicator';
 import Modal from './Modal';
 import { CreateScenarioModal } from './CreateScenarioModal';
 import Toast from './Toast';
+import ApprovalModal from './ApprovalModal';
 import { Cenario } from '../types';
 import { useState, useEffect } from 'react';
 
@@ -151,18 +152,18 @@ const StoryDetails: React.FC = () => {
       });
 
       if (response.ok) {
-        // Verificar no Supabase se integracao_ok do cenário foi atualizado para true
+        // Verificar no Supabase se integracao_ok do cenário foi atualizado para true e buscar o link_jira
         const { data: updatedCenario } = await supabase
           .from('cenarios')
-          .select('integracao_ok')
+          .select('integracao_ok, link_jira')
           .eq('id', selectedCenarioId)
           .single();
         
         if (updatedCenario?.integracao_ok) {
-          // Atualizar o cenário na lista local
+          // Atualizar o cenário na lista local com link_jira
           setCenarios(prev => prev.map(c => 
             c.id === selectedCenarioId 
-              ? { ...c, integracao_ok: true }
+              ? { ...c, integracao_ok: true, link_jira: updatedCenario.link_jira }
               : c
           ));
           setToastMessage('Cenário aprovado e integrado ao JIRA com sucesso!');
@@ -173,15 +174,15 @@ const StoryDetails: React.FC = () => {
           setTimeout(async () => {
             const { data: recheckCenario } = await supabase
               .from('cenarios')
-              .select('integracao_ok')
+              .select('integracao_ok, link_jira')
               .eq('id', selectedCenarioId)
               .single();
               
             if (recheckCenario?.integracao_ok) {
-              // Atualizar o cenário na lista local
+              // Atualizar o cenário na lista local com link_jira
               setCenarios(prev => prev.map(c => 
                 c.id === selectedCenarioId 
-                  ? { ...c, integracao_ok: true }
+                  ? { ...c, integracao_ok: true, link_jira: recheckCenario.link_jira }
                   : c
               ));
               setToastMessage('Cenário aprovado e integrado ao JIRA com sucesso!');
@@ -375,35 +376,12 @@ const StoryDetails: React.FC = () => {
         onSave={handleCreateScenario}
       />
       
-      <Modal isOpen={isApproveModalOpen} onClose={closeApproveModal} title="Confirmar Aprovação">
-        <div className="space-y-4">
-          <p className="text-gray-700">
-            Ao aprovar este cenário, os dados da história serão integrados ao JIRA automaticamente.
-          </p>
-          <p className="text-sm text-gray-600 bg-gray-50 p-3 rounded">
-            <strong>História ID:</strong> {historia.historia_id}
-          </p>
-          <p className="text-gray-700">
-            Deseja continuar com a aprovação e integração ao JIRA?
-          </p>
-          <div className="flex justify-end gap-3 pt-4">
-            <button
-              onClick={closeApproveModal}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 transition-colors"
-              disabled={isSubmittingToJira}
-            >
-              Cancelar
-            </button>
-            <button
-              onClick={handleApproveStory}
-              className="px-4 py-2 text-sm font-medium text-white bg-green-600 border border-green-600 rounded-md hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              disabled={isSubmittingToJira}
-            >
-              {isSubmittingToJira ? 'Processando...' : 'Confirmar Aprovação'}
-            </button>
-          </div>
-        </div>
-      </Modal>
+      <ApprovalModal
+        isOpen={isApproveModalOpen}
+        onClose={closeApproveModal}
+        onConfirm={handleApproveStory}
+        historiaId={historia?.historia_id || ''}
+      />
       
       <Toast
         isVisible={showToast}

@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, Code, Database, Target, FileText, Check, Trash2 } from 'lucide-react';
+import { ArrowLeft, Code, Database, Target, FileText, Check, Trash2, Loader2, ExternalLink } from 'lucide-react';
 import { supabase } from '../supabaseClient';
 import Modal from '../components/Modal';
+import Toast from '../components/Toast';
+import ApprovalModal from '../components/ApprovalModal';
 
 interface Historia {
   id: string;
@@ -20,6 +22,8 @@ interface Cenario {
   status_resultado_esperado: string;
   status_massa_dados: string;
   status_automacao: string;
+  integracao_ok: boolean;
+  link_jira: string;
 }
 
 interface MassaDados {
@@ -37,6 +41,11 @@ const ScenarioDetails: React.FC = () => {
   const [massaDados, setMassaDados] = useState<MassaDados[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isApproveModalOpen, setApproveModalOpen] = useState(false);
+  const [isSubmittingToJira, setIsSubmittingToJira] = useState(false);
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastType, setToastType] = useState<'success' | 'error'>('success');
 
   const cenarioIdx = parseInt(cenarioIndex || '0');
   const cenario = cenarios[cenarioIdx];
@@ -119,37 +128,80 @@ const ScenarioDetails: React.FC = () => {
     fetchData();
   }, [historia_id, cenarioIdx]);
 
-  const handleApproveCenario = async () => {
-    if (!cenario) return;
+  const handleApproveCenario = () => {
+    // Abrir modal de confirmação para integração com JIRA
+    setApproveModalOpen(true);
+  };
+
+  const handleApproveToJira = async () => {
+    if (!cenario || !historia_id) return;
+    
+    // Fechar modal imediatamente
+    setApproveModalOpen(false);
+    setIsSubmittingToJira(true);
     
     try {
-      const { error } = await supabase
-        .from('cenarios')
-        .update({
-          status_resultado_esperado: 'Concluído',
-          status_massa_dados: 'Concluído',
-          status_automacao: 'Concluído'
-        })
-        .eq('id', cenario.id);
-      
-      if (error) {
-        console.error('Erro ao aprovar cenário:', error);
-        return;
-      }
-      
-      // Atualizar o cenário local
-      setCenarios(prev => prev.map(c => 
-        c.id === cenario.id 
-          ? { 
-              ...c, 
-              status_resultado_esperado: 'Concluído',
-              status_massa_dados: 'Concluído',
-              status_automacao: 'Concluído'
+      const response = await fetch('https://sistemas-new-n8n-qa.sysmap.com.br/webhook/post-jira', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          historia_id: historia_id,
+          cenario_id: cenario.id
+        }),
+      });
+
+      if (response.ok) {
+        // Verificar no Supabase se integracao_ok do cenário foi atualizado para true e buscar o link_jira
+        const { data: updatedCenario } = await supabase
+          .from('cenarios')
+          .select('integracao_ok, link_jira')
+          .eq('id', cenario.id)
+          .single();
+        
+        if (updatedCenario?.integracao_ok) {
+          // Atualizar o cenário na lista local com link_jira
+          setCenarios(prev => prev.map(c => 
+            c.id === cenario.id 
+              ? { ...c, integracao_ok: true, link_jira: updatedCenario.link_jira }
+              : c
+          ));
+          setToastMessage('Cenário aprovado e integrado ao JIRA com sucesso!');
+          setToastType('success');
+          setShowToast(true);
+        } else {
+          // Aguardar um pouco e tentar novamente (caso o webhook ainda esteja processando)
+          setTimeout(async () => {
+            const { data: recheckCenario } = await supabase
+              .from('cenarios')
+              .select('integracao_ok, link_jira')
+              .eq('id', cenario.id)
+              .single();
+              
+            if (recheckCenario?.integracao_ok) {
+              // Atualizar o cenário na lista local com link_jira
+              setCenarios(prev => prev.map(c => 
+                c.id === cenario.id 
+                  ? { ...c, integracao_ok: true, link_jira: recheckCenario.link_jira }
+                  : c
+              ));
+              setToastMessage('Cenário aprovado e integrado ao JIRA com sucesso!');
+              setToastType('success');
+              setShowToast(true);
             }
-          : c
-      ));
+          }, 3000);
+        }
+      } else {
+        throw new Error('Erro na requisição ao JIRA');
+      }
     } catch (error) {
       console.error('Erro ao aprovar cenário:', error);
+      setToastMessage('Erro ao integrar com o JIRA. Tente novamente.');
+      setToastType('error');
+      setShowToast(true);
+    } finally {
+      setIsSubmittingToJira(false);
     }
   };
 
@@ -180,6 +232,9 @@ const ScenarioDetails: React.FC = () => {
 
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
+  const openApproveModal = () => setApproveModalOpen(true);
+  const closeApproveModal = () => setApproveModalOpen(false);
+  const closeToast = () => setShowToast(false);
 
   if (loading) {
     return (
@@ -217,26 +272,56 @@ const ScenarioDetails: React.FC = () => {
         </p>
         <p className="text-gray-600">
           {historia.descricao && historia.descricao.length > 120
-            ? historia.descricao.slice(0, 120) + '...'
+            ? (
+              <>
+                {historia.descricao.slice(0, 120)}...{' '}
+                <button
+                  onClick={openModal}
+                  className="text-blue-600 hover:text-blue-800 underline"
+                >
+                  Ver detalhes completos
+                </button>
+              </>
+            )
             : historia.descricao}
         </p>
         
         {/* Botões de Ação */}
         <div className="flex gap-3 mt-4">
-          <button
-            onClick={handleApproveCenario}
-            className="inline-flex items-center px-4 py-2 text-sm font-medium text-green-700 bg-green-50 border border-green-200 rounded-md hover:bg-green-100 transition-colors"
-          >
-            <Check className="h-4 w-4 mr-2" size={16} />
-            Aprovar Cenário
-          </button>
-          <button
-            onClick={handleRemoveCenario}
-            className="inline-flex items-center px-4 py-2 text-sm font-medium text-red-700 bg-red-50 border border-red-200 rounded-md hover:bg-red-100 transition-colors"
-          >
-            <Trash2 className="h-4 w-4 mr-2" size={16} />
-            Remover Cenário
-          </button>
+          {cenario.integracao_ok ? (
+            <button
+              onClick={() => window.open(cenario.link_jira, '_blank')}
+              className="inline-flex items-center px-4 py-2 text-sm font-medium text-blue-700 bg-white border border-blue-300 rounded-md hover:bg-blue-50 transition-colors"
+            >
+              <ExternalLink className="h-4 w-4 mr-2" size={16} />
+              Ver no JIRA
+            </button>
+          ) : isSubmittingToJira ? (
+            <button
+              disabled
+              className="inline-flex items-center px-4 py-2 text-sm font-medium text-yellow-700 bg-yellow-50 border border-yellow-200 rounded-md opacity-75 cursor-not-allowed"
+            >
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" size={16} />
+              Processando...
+            </button>
+          ) : (
+            <>
+              <button
+                onClick={handleApproveCenario}
+                className="inline-flex items-center px-4 py-2 text-sm font-medium text-green-700 bg-green-50 border border-green-200 rounded-md hover:bg-green-100 transition-colors"
+              >
+                <Check className="h-4 w-4 mr-2" size={16} />
+                Aprovar Cenário
+              </button>
+              <button
+                onClick={handleRemoveCenario}
+                className="inline-flex items-center px-4 py-2 text-sm font-medium text-red-700 bg-red-50 border border-red-200 rounded-md hover:bg-red-100 transition-colors"
+              >
+                <Trash2 className="h-4 w-4 mr-2" size={16} />
+                Remover Cenário
+              </button>
+            </>
+          )}
         </div>
       </div>
 
@@ -346,6 +431,24 @@ const ScenarioDetails: React.FC = () => {
           {historia?.descricao || "Nenhum conteúdo encontrado."}
         </pre>
       </Modal>
+
+      {/* Modal de Confirmação para Aprovação */}
+      <ApprovalModal
+        isOpen={isApproveModalOpen}
+        onClose={closeApproveModal}
+        onConfirm={handleApproveToJira}
+        historiaId={historia?.historia_id || ''}
+      />
+
+      {/* Toast de Notificação */}
+      {showToast && (
+        <Toast
+          message={toastMessage}
+          type={toastType}
+          isVisible={showToast}
+          onClose={closeToast}
+        />
+      )}
     </div>
   );
 };
